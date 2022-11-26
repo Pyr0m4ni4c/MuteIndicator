@@ -447,8 +447,9 @@ namespace MuteIndicator
             TopMost = true;
         }
 
-        /*
-        Keine Ahnung mehr... wahrscheinlich für die Transparenz als Alternative zu TransparencyKey
+        /// <summary>
+        /// Versteckt das Programm bei Alt+Tab
+        /// </summary>
         protected override CreateParams CreateParams
         {
             get
@@ -458,7 +459,7 @@ namespace MuteIndicator
                 cp.ExStyle |= 0x80;
                 return cp;
             }
-        }*/
+        }
         #endregion
     }
 }
