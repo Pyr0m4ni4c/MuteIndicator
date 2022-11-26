@@ -1,0 +1,62 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net6.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationIcon>Resources\microphone.ico</ApplicationIcon>
+    <StartupObject>MuteIndicator.Program</StartupObject>
+    <PackageIcon>microphone.ico</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\microphone.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+  	<None Update="Properties\Settings1.settings">
+  	  <Generator>SettingsSingleFileGenerator</Generator>
+  	  <LastGenOutput>Settings1.Designer.cs</LastGenOutput>
+  	</None>
+  	<None Update="Resources\microphone.ico">
+  	  <Pack>True</Pack>
+  	  <PackagePath>\</PackagePath>
+  	</None>
+  	<None Update="Resources\Muted.png">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  	</None>
+  	<None Update="Resources\Unmuted.png">
+  	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+  	</None>
+  </ItemGroup>
+
+	<ItemGroup>
+    <PackageReference Include="NAudio" Version="2.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Update="Properties\Settings1.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings1.settings</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.de.resx">
+      <DependentUpon>Resources.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>
