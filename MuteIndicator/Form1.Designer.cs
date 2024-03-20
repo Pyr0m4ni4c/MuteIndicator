@@ -1,4 +1,6 @@
-﻿namespace MuteIndicator
+﻿using System.Windows.Forms;
+
+namespace MuteIndicator
 {
     partial class Form1
     {

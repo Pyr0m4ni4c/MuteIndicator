@@ -5,6 +5,8 @@ VisualStudioVersion = 17.1.31911.260
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MuteIndicator", "MuteIndicator\MuteIndicator.csproj", "{15023DD2-5C4F-4604-A2F3-1D14982760F1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AudioStuff", "AudioStuff\AudioStuff.csproj", "{7EF2F0C6-3E8B-49F8-BC04-51E5EA2B4296}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{15023DD2-5C4F-4604-A2F3-1D14982760F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{15023DD2-5C4F-4604-A2F3-1D14982760F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{15023DD2-5C4F-4604-A2F3-1D14982760F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EF2F0C6-3E8B-49F8-BC04-51E5EA2B4296}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EF2F0C6-3E8B-49F8-BC04-51E5EA2B4296}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EF2F0C6-3E8B-49F8-BC04-51E5EA2B4296}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EF2F0C6-3E8B-49F8-BC04-51E5EA2B4296}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

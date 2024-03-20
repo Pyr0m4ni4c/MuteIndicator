@@ -59,4 +59,14 @@
     </EmbeddedResource>
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="AudioDeviceCmdlets">
+      <HintPath>..\..\AudioDeviceCmdlets.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AudioStuff\AudioStuff.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -154,4 +154,10 @@
   <data name="Exit" xml:space="preserve">
 	  <value>Exit</value>
   </data>
+  <data name="ConfigurationOutputDevice" xml:space="preserve">
+    <value>Playback-Device</value>
+  </data>
+  <data name="ConfigurationInputDevice" xml:space="preserve">
+    <value>Recording-Device</value>
+  </data>
 </root>

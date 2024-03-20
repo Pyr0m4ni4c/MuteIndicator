@@ -1,8 +1,15 @@
+using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Drawing;
 using System.Globalization;
+using System.Linq;
 using System.Media;
 using System.Resources;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Windows.Forms;
+using AudioStuff;
 using MuteIndicator.Properties;
 using NAudio.CoreAudioApi;
 
@@ -11,7 +18,8 @@ namespace MuteIndicator
     public partial class Form1 : Form
     {
         public delegate void MuteReceivedDelegate(string message);
-    
+        public delegate void OnAudioCycleReceivedDelegate();
+
         private enum CornerLocation
         {
             [Description("Top Left")] TopLeft,
@@ -32,6 +40,8 @@ namespace MuteIndicator
         private ToolStripMenuItem cornerSettings = null;
         private ToolStripMenuItem sizeSettings = null;
         private ToolStripMenuItem languageSettings = null;
+        private ToolStripMenuItem outputSwitchSettings = null;
+        private ToolStripMenuItem inputSwitchSettings = null;
         #endregion
 
         #region fields and props
@@ -88,7 +98,8 @@ namespace MuteIndicator
             UpdateFormLocation();
 
             _lastMute = DateTime.Now;
-            AsynchronousSocketListener.muteReceived += OnMuteReceived;
+            SimpleMessageHandler.MuteReceived += OnMuteReceived;
+            SimpleMessageHandler.CycleReceived += OnAudioCycleReceived;
             timer1.Enabled = true;
 
             // NUR mittels StopListening kann der Thread gestoppt werden
@@ -113,6 +124,12 @@ namespace MuteIndicator
 
             languageSettings = GenerateLanguageSettings();
             m_contextMenuStrip.Items.Add(languageSettings);
+
+            outputSwitchSettings = GenerateOutputSwitchOptions();
+            m_contextMenuStrip.Items.Add(outputSwitchSettings);
+
+            inputSwitchSettings = GenerateInputSwitchOptions();
+            m_contextMenuStrip.Items.Add(inputSwitchSettings);
 
             m_contextMenuStrip.Items.Add(ResourceManager.GetString("Exit", CultureInfo), Resources.exit, (sender, args) =>
             {
@@ -152,6 +169,127 @@ namespace MuteIndicator
             toolStripMenuItem.DropDownItems.Add(GetItem(CornerLocation.BottomRight));
 
             return toolStripMenuItem;
+        }
+
+        private static string ReplaceDeviceAt(int insertAt, string nameArray, string toInsert)
+        {
+            const string separator = "|";
+            if (string.IsNullOrEmpty(nameArray))
+            {
+                var list = new List<string>(new string[insertAt]) { toInsert, };
+                return string.Join("|", list);
+            }
+            var names = nameArray.Split(separator, StringSplitOptions.RemoveEmptyEntries);
+            if (names.Length > insertAt)
+                names[insertAt] = toInsert;
+            else
+            {
+                var tmp = new List<string>(names) { toInsert };
+                names = tmp.ToArray();
+            }
+            return string.Join(separator, names);
+        }
+
+        private ToolStripMenuItem GenerateOutputSwitchOptions()
+        {
+            var toolStripMenuItem = new ToolStripMenuItem(ResourceManager.GetString("ConfigurationOutputDevice", CultureInfo));
+
+            const int maxDeviceOptions = 2;
+            for (int i = 0; i < maxDeviceOptions; i++)
+                toolStripMenuItem.DropDownItems.Add(GetItem(i));
+
+            return toolStripMenuItem;
+
+            ToolStripItem GetItem(int i)
+            {
+                var item = new ToolStripComboBox();
+                item.Tag = i;
+
+                var outputDeviceNames = AudioGetter.GetOutputDeviceNames;
+                item.Items.AddRange((object[]) outputDeviceNames);
+
+                var deviceNames = outputDeviceNames as string[] ?? outputDeviceNames.ToArray();
+                // Liste neu aufbauen
+                if (string.IsNullOrEmpty(Settings1.Default.OutputDevice)
+                    || Settings1.Default.OutputDevice.Split("|", StringSplitOptions.RemoveEmptyEntries).Length != deviceNames.Length)
+                {
+                    Settings1.Default.OutputDevice = ReplaceDeviceAt((int)item.Tag, Settings1.Default.OutputDevice, deviceNames[0]);
+                    Settings1.Default.Save();
+
+                    var defaultOutputDeviceName = AudioGetter.DefaultOutputDeviceName;
+                    if (deviceNames.Contains(defaultOutputDeviceName))
+                        item.SelectedItem = defaultOutputDeviceName;
+                    else
+                        item.SelectedIndex = -1;
+                }
+                else
+                {
+                    item.SelectedIndex = i;
+                }
+
+                item.SelectedIndexChanged += (_, _) =>
+                {
+                    var selectedName = item.SelectedItem.ToString();
+                    if (string.IsNullOrEmpty(selectedName)) return;
+                    //var selectedDeviceId = AudioGetter.GetIdByName(selectedName);
+                    //AudioSetter.SetDefault(selectedDeviceId);
+                    Settings1.Default.OutputDevice = ReplaceDeviceAt((int)item.Tag, Settings1.Default.OutputDevice, selectedName);
+                    Settings1.Default.Save();
+                };
+
+                return item;
+            }
+        }
+
+        private ToolStripMenuItem GenerateInputSwitchOptions()
+        {
+            var toolStripMenuItem = new ToolStripMenuItem(ResourceManager.GetString("ConfigurationInputDevice", CultureInfo));
+
+            const int maxDeviceOptions = 2;
+            for (int i = 0; i < maxDeviceOptions; i++)
+                toolStripMenuItem.DropDownItems.Add(GetItem(i));
+
+            return toolStripMenuItem;
+
+            ToolStripItem GetItem(int i)
+            {
+                var item = new ToolStripComboBox();
+                item.Tag = i;
+
+                var inputDeviceNames = AudioGetter.GetInputDeviceNames;
+                item.Items.AddRange((object[]) inputDeviceNames);
+
+                var deviceNames = inputDeviceNames as string[] ?? inputDeviceNames.ToArray();
+                // Liste neu aufbauen
+                if (string.IsNullOrEmpty(Settings1.Default.InputDevice)
+                    || Settings1.Default.InputDevice.Split("|", StringSplitOptions.RemoveEmptyEntries).Length != deviceNames.Length)
+                {
+                    Settings1.Default.InputDevice = ReplaceDeviceAt((int)item.Tag, Settings1.Default.InputDevice, deviceNames[0]);
+                    Settings1.Default.Save();
+
+                    var defaultInputDeviceName = AudioGetter.DefaultInputDeviceName;
+                    if (deviceNames.Contains(defaultInputDeviceName))
+                        item.SelectedItem = defaultInputDeviceName;
+                    else
+                        item.SelectedIndex = -1;
+                }
+                else
+                {
+                    item.SelectedIndex = i;
+                }
+
+                item.SelectedIndexChanged += (_, _) =>
+                {
+                    var selectedName = item.SelectedItem.ToString();
+                    if (string.IsNullOrEmpty(selectedName)) return;
+                    //var selectedDeviceId = AudioGetter.GetIdByName(selectedName);
+                    //AudioSetter.SetDefault(selectedDeviceId);
+                    Settings1.Default.InputDevice = ReplaceDeviceAt((int)item.Tag, Settings1.Default.InputDevice, selectedName);
+                    Settings1.Default.Save();
+                };
+
+                return item;
+            }
         }
 
         private ToolStripMenuItem GenerateLanguageSettings()
@@ -341,7 +479,59 @@ namespace MuteIndicator
             using var g = Graphics.FromImage(bmp);
 
             g.FillEllipse(new SolidBrush(c), new Rectangle(0, 0, s.Width, s.Height));
+
+            try
+            {
+                Font f = new Font("Arial", 12);
+                var defaultInputDeviceName = AudioGetter.DefaultInputDeviceName;
+                var defaultOutputDeviceName = AudioGetter.DefaultOutputDeviceName;
+                g.DrawString($"I:{defaultInputDeviceName[0]}", f, new SolidBrush(Color.Black), new PointF(10, 10));
+                g.DrawString($"O:{defaultOutputDeviceName[0]}", f, new SolidBrush(Color.Black), new PointF(10, 20));
+            }
+            catch
+            {
+                // ignored
+            }
+
             pb.Image = (Bitmap) bmp.Clone();
+        }
+
+        private void OnAudioCycleReceived()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new OnAudioCycleReceivedDelegate(OnAudioCycleReceived));
+                return;
+            }
+            string message = "OnAudioCycle Received";
+
+            #region Output Devices
+            var outputDeviceOptions = Settings1.Default.OutputDevice.Split("|", StringSplitOptions.RemoveEmptyEntries);
+            SetDefault(outputDeviceOptions, AudioGetter.DefaultOutputDeviceName);
+            #endregion
+
+            #region Input Devices
+            var inputDeviceOptions = Settings1.Default.InputDevice.Split("|", StringSplitOptions.RemoveEmptyEntries);
+            message += $"\r\nAvailable input devices: {Settings1.Default.InputDevice}";
+            message += $"\r\nCurrent input device: {AudioGetter.DefaultInputDeviceName}";
+            SetDefault(inputDeviceOptions, AudioGetter.DefaultInputDeviceName);
+            message += $"\r\nNew input device: {AudioGetter.DefaultInputDeviceName}";
+            #endregion
+
+            Console.WriteLine(message);
+
+            void SetDefault(string[] options, string curName)
+            {
+                int index = 0;
+                for (; index < options.Length; index++)
+                    if (options[index] == curName)
+                        break;
+                index++;
+
+                var newOutputDeviceName = options[index % options.Length];
+                var newOutputDeviceId = AudioGetter.GetIdByName(newOutputDeviceName);
+                AudioSetter.SetDefault(newOutputDeviceId);
+            }
         }
 
         private void OnMuteReceived(string message)
@@ -352,7 +542,8 @@ namespace MuteIndicator
                 return;
             }
 
-            var muted = message == "True";
+            var muted = message.StartsWith("muted", StringComparison.CurrentCultureIgnoreCase)
+                        || message.Contains("true", StringComparison.CurrentCultureIgnoreCase);
 
             if (muted == _lastState) return;
             if (DateTime.Now - _lastMute < TimeSpan.FromMilliseconds(HandlingTimeout)) return;

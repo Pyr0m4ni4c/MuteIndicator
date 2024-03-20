@@ -147,4 +147,10 @@
   <data name="Exit" xml:space="preserve">
 	  <value>Beenden</value><comment>Bezeichner des "Exit"-Menüeintrags</comment>
   </data>
+  <data name="ConfigurationInputDevice" xml:space="preserve">
+    <value>Aufnahmegerät</value>
+  </data>
+  <data name="ConfigurationOutputDevice" xml:space="preserve">
+    <value>Wiedergabegerät</value>
+  </data>
 </root>

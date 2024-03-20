@@ -1,6 +1,9 @@
-﻿using System.Net;
+﻿using System;
+using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Threading;
 
 namespace MuteIndicator
 {
@@ -39,7 +42,6 @@ namespace MuteIndicator
     {
         // Thread signal.  
         public static ManualResetEvent allDone = new(false);
-        public static Form1.MuteReceivedDelegate muteReceived;
         private static Socket listener;
         private static bool stop;
 
@@ -142,7 +144,7 @@ namespace MuteIndicator
                     Console.WriteLine("Read {0} bytes from socket. \n Data : {1}",
                         content.Length, content);
 
-                    muteReceived?.Invoke(content.Replace("<EOF>", ""));
+                    SimpleMessageHandler.ParseAndFire(content);
 
                     handler.Shutdown(SocketShutdown.Both);
                     handler.Close();
@@ -151,7 +153,7 @@ namespace MuteIndicator
                 {
                     // Not all data received. Get more.  
                     handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                    new AsyncCallback(ReadCallback), state);
+                        new AsyncCallback(ReadCallback), state);
                 }
             }
         }
