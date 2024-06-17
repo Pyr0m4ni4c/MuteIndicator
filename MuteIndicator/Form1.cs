@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
@@ -40,8 +41,6 @@ namespace MuteIndicator
         private ToolStripMenuItem cornerSettings = null;
         private ToolStripMenuItem sizeSettings = null;
         private ToolStripMenuItem languageSettings = null;
-        private ToolStripMenuItem outputSwitchSettings = null;
-        private ToolStripMenuItem inputSwitchSettings = null;
         #endregion
 
         #region fields and props
@@ -125,11 +124,17 @@ namespace MuteIndicator
             languageSettings = GenerateLanguageSettings();
             m_contextMenuStrip.Items.Add(languageSettings);
 
-            outputSwitchSettings = GenerateOutputSwitchOptions();
-            m_contextMenuStrip.Items.Add(outputSwitchSettings);
+            m_contextMenuStrip.Items.Add(ResourceManager.GetString("ConfigureAudioCombos", CultureInfo), Resources.configure, (sender, args) =>
+            {
+                var outputDeviceNames = AudioGetter.GetOutputDeviceNames;
+                var inputDeviceNames = AudioGetter.GetInputDeviceNames;
+                var audioCombos = AudioComboCollection.CreateFromString(Settings1.Default.AudioCombos);
 
-            inputSwitchSettings = GenerateInputSwitchOptions();
-            m_contextMenuStrip.Items.Add(inputSwitchSettings);
+                audioCombos.CollectionChanged += AudioCombosOnCollectionChanged;
+
+                var form = new SelectAudioCombo(outputDeviceNames, inputDeviceNames, audioCombos);
+                form.ShowDialog();
+            });
 
             m_contextMenuStrip.Items.Add(ResourceManager.GetString("Exit", CultureInfo), Resources.exit, (sender, args) =>
             {
@@ -138,6 +143,13 @@ namespace MuteIndicator
             });
 
             notifyIcon1.ContextMenuStrip = m_contextMenuStrip;
+        }
+
+        private void AudioCombosOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            var c = (AudioComboCollection) sender;
+            Settings1.Default.AudioCombos = AudioComboCollection.ConvertToString(c);
+            Settings1.Default.Save();
         }
 
         private ToolStripMenuItem GenerateCornerSettings()
@@ -188,108 +200,6 @@ namespace MuteIndicator
                 names = tmp.ToArray();
             }
             return string.Join(separator, names);
-        }
-
-        private ToolStripMenuItem GenerateOutputSwitchOptions()
-        {
-            var toolStripMenuItem = new ToolStripMenuItem(ResourceManager.GetString("ConfigurationOutputDevice", CultureInfo));
-
-            const int maxDeviceOptions = 2;
-            for (int i = 0; i < maxDeviceOptions; i++)
-                toolStripMenuItem.DropDownItems.Add(GetItem(i));
-
-            return toolStripMenuItem;
-
-            ToolStripItem GetItem(int i)
-            {
-                var item = new ToolStripComboBox();
-                item.Tag = i;
-
-                var outputDeviceNames = AudioGetter.GetOutputDeviceNames;
-                item.Items.AddRange((object[]) outputDeviceNames);
-
-                var deviceNames = outputDeviceNames as string[] ?? outputDeviceNames.ToArray();
-                // Liste neu aufbauen
-                if (string.IsNullOrEmpty(Settings1.Default.OutputDevice)
-                    || Settings1.Default.OutputDevice.Split("|", StringSplitOptions.RemoveEmptyEntries).Length != deviceNames.Length)
-                {
-                    Settings1.Default.OutputDevice = ReplaceDeviceAt((int)item.Tag, Settings1.Default.OutputDevice, deviceNames[0]);
-                    Settings1.Default.Save();
-
-                    var defaultOutputDeviceName = AudioGetter.DefaultOutputDeviceName;
-                    if (deviceNames.Contains(defaultOutputDeviceName))
-                        item.SelectedItem = defaultOutputDeviceName;
-                    else
-                        item.SelectedIndex = -1;
-                }
-                else
-                {
-                    item.SelectedIndex = i;
-                }
-
-                item.SelectedIndexChanged += (_, _) =>
-                {
-                    var selectedName = item.SelectedItem.ToString();
-                    if (string.IsNullOrEmpty(selectedName)) return;
-                    //var selectedDeviceId = AudioGetter.GetIdByName(selectedName);
-                    //AudioSetter.SetDefault(selectedDeviceId);
-                    Settings1.Default.OutputDevice = ReplaceDeviceAt((int)item.Tag, Settings1.Default.OutputDevice, selectedName);
-                    Settings1.Default.Save();
-                };
-
-                return item;
-            }
-        }
-
-        private ToolStripMenuItem GenerateInputSwitchOptions()
-        {
-            var toolStripMenuItem = new ToolStripMenuItem(ResourceManager.GetString("ConfigurationInputDevice", CultureInfo));
-
-            const int maxDeviceOptions = 2;
-            for (int i = 0; i < maxDeviceOptions; i++)
-                toolStripMenuItem.DropDownItems.Add(GetItem(i));
-
-            return toolStripMenuItem;
-
-            ToolStripItem GetItem(int i)
-            {
-                var item = new ToolStripComboBox();
-                item.Tag = i;
-
-                var inputDeviceNames = AudioGetter.GetInputDeviceNames;
-                item.Items.AddRange((object[]) inputDeviceNames);
-
-                var deviceNames = inputDeviceNames as string[] ?? inputDeviceNames.ToArray();
-                // Liste neu aufbauen
-                if (string.IsNullOrEmpty(Settings1.Default.InputDevice)
-                    || Settings1.Default.InputDevice.Split("|", StringSplitOptions.RemoveEmptyEntries).Length != deviceNames.Length)
-                {
-                    Settings1.Default.InputDevice = ReplaceDeviceAt((int)item.Tag, Settings1.Default.InputDevice, deviceNames[0]);
-                    Settings1.Default.Save();
-
-                    var defaultInputDeviceName = AudioGetter.DefaultInputDeviceName;
-                    if (deviceNames.Contains(defaultInputDeviceName))
-                        item.SelectedItem = defaultInputDeviceName;
-                    else
-                        item.SelectedIndex = -1;
-                }
-                else
-                {
-                    item.SelectedIndex = i;
-                }
-
-                item.SelectedIndexChanged += (_, _) =>
-                {
-                    var selectedName = item.SelectedItem.ToString();
-                    if (string.IsNullOrEmpty(selectedName)) return;
-                    //var selectedDeviceId = AudioGetter.GetIdByName(selectedName);
-                    //AudioSetter.SetDefault(selectedDeviceId);
-                    Settings1.Default.InputDevice = ReplaceDeviceAt((int)item.Tag, Settings1.Default.InputDevice, selectedName);
-                    Settings1.Default.Save();
-                };
-
-                return item;
-            }
         }
 
         private ToolStripMenuItem GenerateLanguageSettings()
@@ -503,35 +413,20 @@ namespace MuteIndicator
                 Invoke(new OnAudioCycleReceivedDelegate(OnAudioCycleReceived));
                 return;
             }
-            string message = "OnAudioCycle Received";
 
-            #region Output Devices
-            var outputDeviceOptions = Settings1.Default.OutputDevice.Split("|", StringSplitOptions.RemoveEmptyEntries);
-            SetDefault(outputDeviceOptions, AudioGetter.DefaultOutputDeviceName);
-            #endregion
+            var current = AudioCombo.CreateFromString(Settings1.Default.CurrentCombo);
+            var options = AudioComboCollection.CreateFromString(Settings1.Default.AudioCombos);
+            if (options is not { Count: > 0 }) return;
+            var curInd = current != null ? options.IndexOf(current) : 0;
+            var nextItem = options[(curInd + 1) % options.Count];
 
-            #region Input Devices
-            var inputDeviceOptions = Settings1.Default.InputDevice.Split("|", StringSplitOptions.RemoveEmptyEntries);
-            message += $"\r\nAvailable input devices: {Settings1.Default.InputDevice}";
-            message += $"\r\nCurrent input device: {AudioGetter.DefaultInputDeviceName}";
-            SetDefault(inputDeviceOptions, AudioGetter.DefaultInputDeviceName);
-            message += $"\r\nNew input device: {AudioGetter.DefaultInputDeviceName}";
-            #endregion
+            var idByName = AudioGetter.GetIdByName(nextItem.InputDeviceName);
+            AudioSetter.SetDefault(idByName);
+            idByName = AudioGetter.GetIdByName(nextItem.OutputDeviceName);
+            AudioSetter.SetDefault(idByName);
 
-            Console.WriteLine(message);
-
-            void SetDefault(string[] options, string curName)
-            {
-                int index = 0;
-                for (; index < options.Length; index++)
-                    if (options[index] == curName)
-                        break;
-                index++;
-
-                var newOutputDeviceName = options[index % options.Length];
-                var newOutputDeviceId = AudioGetter.GetIdByName(newOutputDeviceName);
-                AudioSetter.SetDefault(newOutputDeviceId);
-            }
+            Settings1.Default.CurrentCombo = AudioCombo.ConvertToString(nextItem);
+            Settings1.Default.Save();
         }
 
         private void OnMuteReceived(string message)
@@ -548,12 +443,12 @@ namespace MuteIndicator
             if (muted == _lastState) return;
             if (DateTime.Now - _lastMute < TimeSpan.FromMilliseconds(HandlingTimeout)) return;
 
-            new SoundPlayer(muted
-                ? Resources.Mutesound
-                : Resources.Unmutesound).PlaySync();
-
             _lastState = muted;
             SetIndicator(pictureBox1, muted ? _colorMuted : _colorUnMuted, Settings1.Default.Size);
+
+            new SoundPlayer(muted
+                ? Resources.Mutesound
+                : Resources.Unmutesound).Play();
         }
 
         private void timer1_Tick(object sender, EventArgs e)

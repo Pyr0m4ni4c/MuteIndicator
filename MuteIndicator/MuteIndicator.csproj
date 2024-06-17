@@ -24,12 +24,6 @@
   	  <Pack>True</Pack>
   	  <PackagePath>\</PackagePath>
   	</None>
-  	<None Update="Resources\Muted.png">
-	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-  	</None>
-  	<None Update="Resources\Unmuted.png">
-  	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-  	</None>
   </ItemGroup>
 
 	<ItemGroup>

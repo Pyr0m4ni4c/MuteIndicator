@@ -8,20 +8,20 @@
 //------------------------------------------------------------------------------
 
 namespace MuteIndicator.Properties {
-
-
+    
+    
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "15.9.0.0")]
     internal sealed partial class Settings1 : global::System.Configuration.ApplicationSettingsBase {
-
+        
         private static Settings1 defaultInstance = ((Settings1)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings1())));
-
+        
         public static Settings1 Default {
             get {
                 return defaultInstance;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
@@ -33,7 +33,7 @@ namespace MuteIndicator.Properties {
                 this["DisplayName"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
@@ -45,7 +45,7 @@ namespace MuteIndicator.Properties {
                 this["CornerLocation"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("16, 16")]
@@ -57,7 +57,7 @@ namespace MuteIndicator.Properties {
                 this["Size"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("0")]
@@ -69,28 +69,28 @@ namespace MuteIndicator.Properties {
                 this["Language"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string InputDevice {
+        public string AudioCombos {
             get {
-                return ((string)(this["InputDevice"]));
+                return ((string)(this["AudioCombos"]));
             }
             set {
-                this["InputDevice"] = value;
+                this["AudioCombos"] = value;
             }
         }
-
+        
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.DefaultSettingValueAttribute("")]
-        public string OutputDevice {
+        public string CurrentCombo {
             get {
-                return ((string)(this["OutputDevice"]));
+                return ((string)(this["CurrentCombo"]));
             }
             set {
-                this["OutputDevice"] = value;
+                this["CurrentCombo"] = value;
             }
         }
     }

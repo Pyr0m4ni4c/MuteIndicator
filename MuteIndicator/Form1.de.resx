@@ -153,4 +153,7 @@
   <data name="ConfigurationOutputDevice" xml:space="preserve">
     <value>Wiedergabegerät</value>
   </data>
+  <data name="ConfigureAudioCombos" xml:space="preserve">
+    <value>Konfiguration Audio-Geräte</value>
+  </data>
 </root>
