@@ -4,13 +4,13 @@ namespace MuteIndicator
 {
     static class SimpleMessageHandler
     {
+        private const StringComparison CurIgn = StringComparison.CurrentCultureIgnoreCase;
         internal static Form1.MuteReceivedDelegate? MuteReceived;
         internal static Form1.OnAudioCycleReceivedDelegate? CycleReceived;
 
         private static bool IsMuteMessage(string message)
         {
-            const StringComparison ccic = StringComparison.CurrentCultureIgnoreCase;
-            return message.EndsWith("muted", ccic) || message.Equals(true.ToString(), ccic) || message.Equals(false.ToString(), ccic);
+            return message.EndsWith("muted", CurIgn) || message.Equals(true.ToString(), CurIgn) || message.Equals(false.ToString(), CurIgn);
         }
 
         private static bool IsCycleMessage(string message)

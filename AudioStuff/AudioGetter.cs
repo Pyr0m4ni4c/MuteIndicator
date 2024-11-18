@@ -7,6 +7,8 @@ namespace AudioStuff
 {
     public static class AudioGetter
     {
+        private const StringComparison CurIgn = StringComparison.CurrentCultureIgnoreCase;
+
         /*
         MMDeviceEnumerator devEnum = new MMDeviceEnumerator();
 
@@ -43,8 +45,8 @@ namespace AudioStuff
 
         public static bool IsDefaultDevice(string friendlyName)
         {
-            return DefaultOutputDeviceName.Equals(friendlyName, StringComparison.CurrentCultureIgnoreCase)
-                   || DefaultInputDeviceName.Equals(friendlyName, StringComparison.CurrentCultureIgnoreCase);
+            return DefaultOutputDeviceName.Equals(friendlyName, CurIgn)
+                   || DefaultInputDeviceName.Equals(friendlyName, CurIgn);
         }
 
         public static IEnumerable<string> GetOutputDeviceNames
@@ -83,17 +85,32 @@ namespace AudioStuff
             return firstOrDefault?.ID ?? "";
         }
 
-        public static string DefaultOutputDeviceName => DefaultOutputDevice.FriendlyName;
+        public static string DefaultOutputDeviceName
+        {
+            get
+            {
+                using var defaultOutputDevice = DefaultOutputDevice;
+                return defaultOutputDevice.FriendlyName;
+            }
+        }
+
         public static string DefaultOutputDeviceId => DefaultOutputDevice.ID;
 
-        public static string DefaultInputDeviceName => DefaultInputDevice.FriendlyName;
+        public static string DefaultInputDeviceName
+        {
+            get
+            {
+                using var defaultInputDevice = DefaultInputDevice;
+                return defaultInputDevice.FriendlyName;
+            }
+        }
+
         public static string DefaultInputDeviceId => DefaultInputDevice.ID;
 
         private static MMDevice DefaultOutputDevice
         {
             get
             {
-
                 using MMDeviceEnumerator devEnum = new MMDeviceEnumerator();
 
                 // Get default audio output (playback) device
@@ -106,7 +123,6 @@ namespace AudioStuff
         {
             get
             {
-
                 using MMDeviceEnumerator devEnum = new MMDeviceEnumerator();
 
                 // Get default audio input (recording) device

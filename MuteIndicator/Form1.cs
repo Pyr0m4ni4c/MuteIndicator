@@ -446,9 +446,10 @@ namespace MuteIndicator
             _lastState = muted;
             SetIndicator(pictureBox1, muted ? _colorMuted : _colorUnMuted, Settings1.Default.Size);
 
-            new SoundPlayer(muted
+            using var soundPlayer = new SoundPlayer(muted
                 ? Resources.Mutesound
-                : Resources.Unmutesound).Play();
+                : Resources.Unmutesound);
+            soundPlayer.Play();
         }
 
         private void timer1_Tick(object sender, EventArgs e)
