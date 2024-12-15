@@ -96,6 +96,7 @@ namespace MuteIndicator.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("true")]
         public bool Hide {
             get {
                 return ((bool)(this["Hide"]));
