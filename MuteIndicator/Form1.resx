@@ -133,6 +133,9 @@
   <data name="ConfigurationMenuCorner" xml:space="preserve">
 	  <value>Corner</value>
   </data>
+  <data name="Hide" xml:space="preserve">
+	  <value>Hide</value>
+  </data>
   <data name="ConfigurationMenuLanguage" xml:space="preserve">
 	  <value>Language</value>
   </data>

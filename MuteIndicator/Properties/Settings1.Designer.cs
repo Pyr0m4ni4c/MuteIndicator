@@ -93,5 +93,16 @@ namespace MuteIndicator.Properties {
                 this["CurrentCombo"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        public bool Hide {
+            get {
+                return ((bool)(this["Hide"]));
+            }
+            set {
+                this["Hide"] = value;
+            }
+        }
     }
 }

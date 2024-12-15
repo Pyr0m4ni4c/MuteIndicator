@@ -41,6 +41,7 @@ namespace MuteIndicator
         private ToolStripMenuItem cornerSettings = null;
         private ToolStripMenuItem sizeSettings = null;
         private ToolStripMenuItem languageSettings = null;
+        private ToolStripMenuItem hide = null;
         #endregion
 
         #region fields and props
@@ -66,6 +67,8 @@ namespace MuteIndicator
         private const int HandlingTimeout = 200;
         private readonly Color _colorUnMuted = Color.Lime;
         private readonly Color _colorMuted = Color.Red;
+        private Color MuteColor => Muted ? _colorMuted : _colorUnMuted;
+        private bool Muted { get; set; }
         #endregion
 
         #region c'tor
@@ -136,6 +139,9 @@ namespace MuteIndicator
                 form.ShowDialog();
             });
 
+            hide = GenerateHideSettings();
+            m_contextMenuStrip.Items.Add(hide);
+
             m_contextMenuStrip.Items.Add(ResourceManager.GetString("Exit", CultureInfo), Resources.exit, (sender, args) =>
             {
                 AsynchronousSocketListener.StopListening();
@@ -202,6 +208,23 @@ namespace MuteIndicator
             return string.Join(separator, names);
         }
 
+        private ToolStripMenuItem GenerateHideSettings()
+        {
+            var toolStripMenuItem = new ToolStripMenuItem(ResourceManager.GetString("Hide", CultureInfo));
+            toolStripMenuItem.Checked = Settings1.Default.Hide;
+
+            toolStripMenuItem.Click += (sender, _) =>
+            {
+                Settings1.Default.Hide = !Settings1.Default.Hide;
+                ((ToolStripMenuItem) sender!).Checked = Settings1.Default.Hide;
+                Settings1.Default.Save();
+
+                SetIndicator(pictureBox1);
+            };
+
+            return toolStripMenuItem;
+        }
+
         private ToolStripMenuItem GenerateLanguageSettings()
         {
             ToolStripItem GetItem(Languages language)
@@ -247,7 +270,7 @@ namespace MuteIndicator
                     Size = s;
                     Settings1.Default.Size = s;
                     Settings1.Default.Save();
-                    SetIndicator(pictureBox1, _lastState ? _colorMuted : _colorUnMuted, Settings1.Default.Size);
+                    SetIndicator(pictureBox1);
                     UpdateCheckedMarks();
                     UpdateFormLocation();
                 };
@@ -305,6 +328,12 @@ namespace MuteIndicator
                 };
 
                 toolStripMenuItem.DropDownItems.Add(stripMenuItem);
+
+                if (Screen.AllScreens.Length == 1)
+                {
+                    Settings1.Default.DisplayName = screen.DeviceName;
+                    Settings1.Default.Save();
+                }
             }
 
             return toolStripMenuItem;
@@ -383,12 +412,15 @@ namespace MuteIndicator
             return destImage;
         }*/
 
-        private static void SetIndicator(PictureBox pb, Color c, Size s)
+        private void SetIndicator(PictureBox pb)
         {
+            pb.Visible = !Settings1.Default.Hide;
+            Size s = Settings1.Default.Size;
+
             using var bmp = new Bitmap(s.Width, s.Height);
             using var g = Graphics.FromImage(bmp);
 
-            g.FillEllipse(new SolidBrush(c), new Rectangle(0, 0, s.Width, s.Height));
+            g.FillEllipse(new SolidBrush(MuteColor), new Rectangle(0, 0, s.Width, s.Height));
 
             try
             {
@@ -437,16 +469,16 @@ namespace MuteIndicator
                 return;
             }
 
-            var muted = message.StartsWith("muted", StringComparison.CurrentCultureIgnoreCase)
-                        || message.Contains("true", StringComparison.CurrentCultureIgnoreCase);
+            Muted = message.StartsWith("muted", StringComparison.CurrentCultureIgnoreCase)
+                    || message.Contains("true", StringComparison.CurrentCultureIgnoreCase);
 
-            if (muted == _lastState) return;
+            if (Muted == _lastState) return;
             if (DateTime.Now - _lastMute < TimeSpan.FromMilliseconds(HandlingTimeout)) return;
 
-            _lastState = muted;
-            SetIndicator(pictureBox1, muted ? _colorMuted : _colorUnMuted, Settings1.Default.Size);
+            _lastState = Muted;
+            SetIndicator(pictureBox1);
 
-            using var soundPlayer = new SoundPlayer(muted
+            using var soundPlayer = new SoundPlayer(Muted
                 ? Resources.Mutesound
                 : Resources.Unmutesound);
             soundPlayer.Play();

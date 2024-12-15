@@ -156,4 +156,7 @@
   <data name="ConfigureAudioCombos" xml:space="preserve">
     <value>Konfiguration Audio-Geräte</value>
   </data>
+  <data name="Hide" xml:space="preserve">
+    <value>Verstecken</value>
+  </data>
 </root>
