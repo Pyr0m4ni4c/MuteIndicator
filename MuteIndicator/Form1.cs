@@ -437,7 +437,6 @@ namespace MuteIndicator
                     break;
                 case Keys.F7:
                     OnAudioCycleReceived();
-                    SetIndicator(pictureBox1);
                     break;
             }
 
@@ -689,6 +688,8 @@ namespace MuteIndicator
             
             Settings1.Default.CurrentCombo = AudioCombo.ConvertToString(nextItem);
             Settings1.Default.Save();
+            
+            SetIndicator(pictureBox1);
         }
 
         private bool OnMuteReceivedApiAsync()
