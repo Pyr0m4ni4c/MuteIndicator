@@ -1,0 +1,6 @@
+﻿<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Standalone-MuteIndicator" type="DotNetFolderPublish" factoryName="Publish to folder">
+    <riderPublish configuration="Release" delete_existing_files="true" platform="Any CPU" produce_single_file="true" runtime="win-x64" target_folder="$PROJECT_DIR$/MuteIndicator/bin/Release/net9.0-windows/win-x64/publish" target_framework="net9.0-windows" uuid_high="1513840398451033604" uuid_low="-6704983445935267599" />
+    <method v="2" />
+  </configuration>
+</component>
