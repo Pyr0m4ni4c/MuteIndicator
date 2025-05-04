@@ -9,6 +9,7 @@
     <ApplicationIcon>Resources\microphone.ico</ApplicationIcon>
     <StartupObject>MuteIndicator.Program</StartupObject>
     <PackageIcon>microphone.ico</PackageIcon>
+    <Version>1.5</Version>
   </PropertyGroup>
 
   <ItemGroup>
