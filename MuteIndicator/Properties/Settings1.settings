@@ -23,6 +23,15 @@
     <Setting Name="Hide" Type="System.Boolean" Scope="User">
       <Value Profile="(Default)">true</Value>
     </Setting>
+    <Setting Name="KeyboardHookEnabled" Type="System.Boolean" Scope="User">
+      <Value Profile="(Default)">False</Value>
+    </Setting>
+    <Setting Name="CurMicrophone" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
+    <Setting Name="CurSpeaker" Type="System.String" Scope="User">
+      <Value Profile="(Default)" />
+    </Setting>
   </Settings>
 </SettingsFile>
 

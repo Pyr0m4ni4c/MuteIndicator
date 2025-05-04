@@ -21,11 +21,17 @@ namespace MuteIndicator
         internal static void ParseAndFire(string rawMessage)
         {
             var message = rawMessage.Replace("<EOF>", "");
-            if (IsMuteMessage(message))
-                MuteReceived?.Invoke(message);
-            else if (IsCycleMessage(message))
-                CycleReceived?.Invoke();
-            return;
+
+            if (IsMuteMessage(message) && MuteReceived != null)
+            {
+                MuteReceived(message);
+                //Task.Run(() => MuteReceived?.Invoke(message)); // Asynchronously invoke MuteReceived
+            }
+            else if (IsCycleMessage(message) && CycleReceived != null)
+            {
+                CycleReceived();
+                //Task.Run(() => CycleReceived?.Invoke()); // Asynchronously invoke CycleReceived
+            }
         }
     }
 }

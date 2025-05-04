@@ -105,5 +105,41 @@ namespace MuteIndicator.Properties {
                 this["Hide"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool KeyboardHookEnabled {
+            get {
+                return ((bool)(this["KeyboardHookEnabled"]));
+            }
+            set {
+                this["KeyboardHookEnabled"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CurMicrophone {
+            get {
+                return ((string)(this["CurMicrophone"]));
+            }
+            set {
+                this["CurMicrophone"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CurSpeaker {
+            get {
+                return ((string)(this["CurSpeaker"]));
+            }
+            set {
+                this["CurSpeaker"] = value;
+            }
+        }
     }
 }

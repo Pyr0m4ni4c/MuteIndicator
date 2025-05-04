@@ -98,7 +98,7 @@ namespace MuteIndicator
                     allDone.Reset();
 
                     // Start an asynchronous socket to listen for connections.
-                    Debug.WriteLine("Waiting for a connection...");
+                    //Debug.WriteLine("Waiting for a connection...");
                     listener.BeginAccept(
                         new AsyncCallback(AcceptCallback),
                         listener);
@@ -119,57 +119,93 @@ namespace MuteIndicator
             allDone.Set();
 
             // Get the socket that handles the client request.
-            Socket listener = (Socket) ar.AsyncState;
-            Socket handler = listener.EndAccept(ar);
+            listener = (Socket) ar.AsyncState;
+            var handler = listener.EndAccept(ar);
 
             // Create the state object.
-            StateObject state = new StateObject();
-            state.workSocket = handler;
-            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                new AsyncCallback(ReadCallback), state);
+            var state = new StateObject { workSocket = handler };
+            handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
         }
 
         public static void ReadCallback(IAsyncResult ar)
         {
-            String content = String.Empty;
+            const string eof = "<EOF>";
 
-            // Retrieve the state object and the handler socket
-            // from the asynchronous state object.
-            StateObject state = (StateObject) ar.AsyncState;
-            Socket handler = state.workSocket;
-
-            // Read data from the client socket.
-            int bytesRead = handler.EndReceive(ar);
-
-            if (bytesRead > 0)
+            try
             {
-                // There  might be more data, so store the data received so far.
-                state.sb.Append(Encoding.ASCII.GetString(
-                    state.buffer, 0, bytesRead));
+                var content = string.Empty;
 
-                // Check for end-of-file tag. If it is not there, read
-                // more data.
-                content = state.sb.ToString();
+                // Retrieve the state object and the handler socket
+                // from the asynchronous state object.
+                var state = (StateObject) ar.AsyncState;
+                var handler = state.workSocket;
 
-                if (content.IndexOf("<EOF>") > -1)
+                // Check if the socket is still connected before proceeding.
+                // if (state is null || handler is null || !IsSocketConnected(handler))
+                // {
+                //     Debug.WriteLine("Socket is no longer connected. Closing...");
+                //     handler?.Close();
+                //     return;
+                // }
+
+                // Read data from the client socket.
+                var bytesRead = handler.EndReceive(ar);
+
+                // Check if the client sent any data.
+                if (bytesRead <= 0)
                 {
-                    // All the data has been read from the
-                    // client. Display it on the console.
-                    Debug.WriteLine("Read {0} bytes from socket. \n Data : {1}",
-                        content.Length, content);
-
-                    SimpleMessageHandler.ParseAndFire(content);
-
-                    handler.Shutdown(SocketShutdown.Both);
+                    // No bytes were read; the client may have closed the connection.
+                    Debug.WriteLine("No data read from socket. Closing...");
                     handler.Close();
                 }
                 else
                 {
-                    // Not all data received. Get more.
-                    handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0,
-                        new AsyncCallback(ReadCallback), state);
+                    // Append received data to the StringBuilder.
+                    state.sb.Append(Encoding.ASCII.GetString(state.buffer, 0, bytesRead));
+
+                    content = state.sb.ToString();
+
+                    // Check for the <EOF> tag to indicate the end of the message.
+
+                    if (content.IndexOf(eof, StringComparison.Ordinal) > -1)
+                    {
+                        // Complete message received. Display on the console.
+                        Debug.WriteLine("Read {0} bytes from socket. \nData: {1}", content.Length, content);
+                        SimpleMessageHandler.ParseAndFire(content);
+
+                        // Close the socket safely after processing.
+                        handler.Shutdown(SocketShutdown.Both);
+                        handler.Close();
+                    }
+                    else
+                    {
+                        // Not all data received; continue reading.
+                        handler.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, ReadCallback, state);
+                    }
                 }
             }
+            catch (SocketException ex)
+            {
+                // Handle socket-related exceptions, such as unexpected disconnections.
+                Debug.WriteLine("SocketException: {0}", ex.Message);
+            }
+            catch (ObjectDisposedException ex)
+            {
+                // Handle cases when the socket is disposed before this callback.
+                Debug.WriteLine("ObjectDisposedException: {0}", ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Handle any other unexpected exceptions.
+                Debug.WriteLine("Unexpected exception in ReadCallback: {0}", ex.Message);
+            }
+        }
+
+        // Helper method to check if the socket is still connected.
+        private static bool IsSocketConnected(Socket socket)
+        {
+            try { return !(socket.Poll(1, SelectMode.SelectRead) && socket.Available == 0); }
+            catch (SocketException) { return false; }
         }
     }
 }

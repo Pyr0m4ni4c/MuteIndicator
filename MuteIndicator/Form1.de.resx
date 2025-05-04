@@ -159,4 +159,7 @@
   <data name="Hide" xml:space="preserve">
     <value>Verstecken</value>
   </data>
+  <data name="ConfigurationKeyboardHook" xml:space="preserve">
+    <value>Aktiviere F4/F7 Tasten</value>
+  </data>
 </root>

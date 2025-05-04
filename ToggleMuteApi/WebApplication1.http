@@ -1,0 +1,30 @@
+@WebApplication1_HostAddress = http://localhost:5288
+
+GET {{WebApplication1_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
+
+# Toggle mute (enable mute)
+POST {{WebApplication1_HostAddress}}/SetMute
+Content-Type: application/json
+
+true
+
+###
+
+# Toggle mute (disable mute)
+POST {{WebApplication1_HostAddress}}/SetMute
+Content-Type: application/json
+
+false
+
+###
+GET {{WebApplication1_HostAddress}}/ToggleMute
+Accept: application/json
+
+###
+GET {{WebApplication1_HostAddress}}/CycleDevices
+Accept: application/json
+
+###

@@ -166,4 +166,7 @@
   <data name="ConfigureAudioCombos" xml:space="preserve">
     <value>Configure Audio Devices</value>
   </data>
+  <data name="ConfigurationKeyboardHook" xml:space="preserve">
+    <value>Enable F4/F7 Shortcut</value>
+  </data>
 </root>
