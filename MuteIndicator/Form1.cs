@@ -89,6 +89,12 @@ namespace MuteIndicator
 
             #region System Tray Icon
             UpdateTrayMenu();
+            //m_contextMenuStrip.Click += (sender, args) => UpdateTrayMenu();
+            m_contextMenuStrip.Opening += (sender, args) =>
+            {
+                UpdateTrayMenu();
+                UpdateCheckedMarks();
+            };
             #endregion
 
             StartPosition = FormStartPosition.Manual;
@@ -120,7 +126,13 @@ namespace MuteIndicator
 
             #region Keyboard-Hook
             m_globalKeyboardHook = new GlobalKeyboardHook();
-            if (Settings1.Default.KeyboardHookEnabled) m_globalKeyboardHook.KeyDown += OnGlobalKeyboardHookKeyDown;
+            m_globalKeyboardHook.KeyDown -= OnGlobalKeyboardHookKeyDown;
+            m_globalKeyboardHook.KeyUp -= OnGlobalKeyboardHookKeyUp;
+            if (Settings1.Default.KeyboardHookEnabled)
+            {
+                m_globalKeyboardHook.KeyDown += OnGlobalKeyboardHookKeyDown;
+                m_globalKeyboardHook.KeyUp += OnGlobalKeyboardHookKeyUp;
+            }
             #endregion
 
             #region Api-Handler
@@ -364,8 +376,13 @@ namespace MuteIndicator
                 Settings1.Default.KeyboardHookEnabled = !Settings1.Default.KeyboardHookEnabled;
                 Settings1.Default.Save();
 
-                if (Settings1.Default.KeyboardHookEnabled) m_globalKeyboardHook.KeyDown += OnGlobalKeyboardHookKeyDown;
-                else m_globalKeyboardHook.KeyDown -= OnGlobalKeyboardHookKeyDown;
+                m_globalKeyboardHook.KeyDown -= OnGlobalKeyboardHookKeyDown;
+                m_globalKeyboardHook.KeyUp -= OnGlobalKeyboardHookKeyUp;
+                if (Settings1.Default.KeyboardHookEnabled)
+                {
+                    m_globalKeyboardHook.KeyDown += OnGlobalKeyboardHookKeyDown;
+                    m_globalKeyboardHook.KeyUp += OnGlobalKeyboardHookKeyUp;
+                }
 
                 toolStripMenuItem.Checked = Settings1.Default.KeyboardHookEnabled;
             };
@@ -413,12 +430,6 @@ namespace MuteIndicator
                 };
 
                 toolStripMenuItem.DropDownItems.Add(stripMenuItem);
-
-                if (Screen.AllScreens.Length == 1)
-                {
-                    Settings1.Default.DisplayName = screen.DeviceName;
-                    Settings1.Default.Save();
-                }
             }
 
             return toolStripMenuItem;
@@ -426,8 +437,41 @@ namespace MuteIndicator
         #endregion
 
         #region private GUI Events
+
+        /// <summary>
+        /// 'Alt' is not being detected!
+        /// </summary>
+        private bool AltPressed = false;
+        private bool CtrlPressed = false;
+        private bool ShiftPressed = false;
+
+        private void HandleDefaultKeys(Keys key, bool down)
+        {
+            switch (key)
+            {
+                case Keys.Alt:
+                    AltPressed = down;
+                    break;
+                case Keys.LShiftKey:
+                    ShiftPressed = down;
+                    break;
+                case Keys.LControlKey:
+                    CtrlPressed = down;
+                    break;
+            }
+            
+            Debug.WriteLine($"Alt={AltPressed} Ctrl={CtrlPressed} Shift={ShiftPressed}");
+        }
+        
+        private void OnGlobalKeyboardHookKeyUp(Keys key)
+        {
+            HandleDefaultKeys(key, false);
+        }
+        
         private void OnGlobalKeyboardHookKeyDown(Keys key)
         {
+            HandleDefaultKeys(key, true);
+            
             switch (key)
             {
                 //case Keys.F6:
@@ -436,11 +480,22 @@ namespace MuteIndicator
                     OnMuteReceivedAsync(Muted.ToString());
                     break;
                 case Keys.F7:
-                    OnAudioCycleReceived();
+                    if (!ShiftPressed)
+                    {
+                        OnAudioCycleReceived();
+                    }
+                    else
+                    {
+                        Settings1.Default.Hide = false;
+                        OnMonitorCycleReceived();
+                    
+                        Settings1.Default.Save();
+                        UpdateCheckedMarks();
+                        UpdateFormLocation();
+                    }
+                    
                     break;
             }
-
-            return;
         }
 
         void GetSetCurrentState()
@@ -472,6 +527,7 @@ namespace MuteIndicator
             foreach (var item in languageSettings.DropDownItems.Cast<ToolStripMenuItem>())
                 item.Checked = (int) item.Tag == Settings1.Default.Language;
 
+            hide.Checked = Settings1.Default.Hide;
             keyboardHookSettings.Checked = Settings1.Default.KeyboardHookEnabled;
         }
 
@@ -663,6 +719,16 @@ namespace MuteIndicator
             }
         }
 
+        private void OnMonitorCycleReceived()
+        {
+            var screens = Screen.AllScreens.ToArray();
+            var indexOf = Array.FindIndex(screens, s => s.DeviceName == Settings1.Default.DisplayName);
+            indexOf++;
+            indexOf %= screens.Length;
+
+            Settings1.Default.DisplayName = screens[indexOf].DeviceName;
+        }
+
         private void OnAudioCycleReceivedAsync() => Task.Run(OnAudioCycleReceived);
         private void OnAudioCycleReceived()
         {
@@ -745,9 +811,24 @@ namespace MuteIndicator
         private void m_Timer2_Tick(object sender, EventArgs e)
         {
             CheckForSystemLanguageChange();
+
+            if (DateTime.Now - lastTick > TimeSpan.FromSeconds(5))
+            {
+                Every5Seconds();
+            }
+            
+            lastTick = DateTime.Now;
+            return;
+            
+            void Every5Seconds()
+            {
+                // in case the number of displays changed (my use-case) the tray menu needs to update
+                UpdateTrayMenu();
+            }
         }
         
         private string m_lastLanguageCode = string.Empty;
+        private DateTime lastTick;
 
         private void CheckForSystemLanguageChange()
         {
